@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "774722658159",
+    "project_id": "flutter-voting-app-443f5",
+    "storage_bucket": "flutter-voting-app-443f5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:774722658159:android:1f0e5f8a839a2b1264929a",
+        "android_client_info": {
+          "package_name": "com.simo.voting_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAHUxcP5lZID5VPGAvknvL2j72gan2HHZ0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
