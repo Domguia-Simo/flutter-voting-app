@@ -2,18 +2,57 @@ import 'package:flutter/material.dart';
 import 'login.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-class Register extends StatelessWidget {
+class Register extends StatefulWidget {
   static String id='register';
 
+  @override
+  State<Register> createState() => _RegisterState();
+}
+
+class _RegisterState extends State<Register> {
   String email='';
+
   String password='';
+
   String confirm='';
+  String error = '';
 
   void register(BuildContext context) async{
+    if(email.isEmpty || password.isEmpty || confirm.isEmpty){
+      setState(() {
+        error = 'Fill all the fields';
+      });
+      return;
+    }
     if(password != confirm){
+      setState(() {
+        error='Passwords not identical';
+      });
       print('error! passwords not identical');
+      return;
     }else{
-      print(' the email:'+email+' the password:'+password);
+      try{
+        setState(() {
+          error = '';
+        });
+        final _auth = FirebaseAuth.instance;
+        final user = await _auth.createUserWithEmailAndPassword(email: email, password: password);
+        if(user.user != null){
+          Navigator.pushReplacementNamed(context, Login.id);
+        }else{
+          print('an error occured');
+        }
+        // print(user.user);
+        print(' the email:'+email+' the password:'+password);
+
+      }
+      catch(e){
+        setState(() {
+          error = 'Verify your internet connection';
+        });
+        print('an error occured');
+        print(e.toString());
+      }
 
     }
   }
@@ -63,6 +102,9 @@ class Register extends StatelessWidget {
                 onChanged: (e)=>confirm=e,
               ),
               SizedBox(height: 10,),
+              Text(error ,style: TextStyle(color:Colors.red),),
+              SizedBox(height: 10,),
+
               MaterialButton(onPressed: (){register(context);}, color: Colors.blue, child: Text('Register'),),
               SizedBox(height: 5,),
 

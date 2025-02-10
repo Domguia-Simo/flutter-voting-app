@@ -5,14 +5,55 @@ import 'register.dart';
 import '../dashboard/index.dart';
 import '../principal.dart';
 
-class Login extends StatelessWidget {
+class Login extends StatefulWidget {
   static String id = 'login';
 
+  @override
+  State<Login> createState() => _LoginState();
+}
+
+class _LoginState extends State<Login> {
   String email = '';
+
   String password = '';
+
+  String error='';
 
   void login(BuildContext context) async {
     print('the email :' + email + ' the password:' + password);
+    if(email.isEmpty || password.isEmpty){
+      setState(() {
+        error='Please fill all the fields';
+      });
+      return;
+    }
+    try{
+      setState(() {
+        error = '';
+      });
+      final auth = FirebaseAuth.instance;
+      final user = await auth.signInWithEmailAndPassword(email: email, password: password);
+      if(user.user != null){
+        if(user.user?.email == 'admin@gmail.com'){
+          Navigator.pushNamed(context, Index.id);
+        }else{
+          Navigator.pushReplacementNamed(context,Principal.id);
+        }
+      }else{
+        setState(() {
+        });
+        print('an error occured');
+      }
+      // print(user.user);
+    }
+    catch(e){
+      print('an error occures');
+      setState(() {
+        error = 'Verify your internet connection';
+      });
+      print(e.toString());
+    }
+
   }
 
   @override
@@ -54,6 +95,10 @@ class Login extends StatelessWidget {
                     hintText: 'Enter your password', icon: Icon(Icons.lock)),
                 onChanged: (e) => password = e,
               ),
+              SizedBox(
+                height: 10,
+              ),
+              Text(error ,style: TextStyle(color:Colors.red),),
               SizedBox(
                 height: 10,
               ),
