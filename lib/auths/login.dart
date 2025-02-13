@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'register.dart';
 import '../dashboard/index.dart';
 import '../principal.dart';
@@ -19,6 +22,8 @@ class _LoginState extends State<Login> {
 
   String error='';
 
+  bool _loading =false;
+
   void login(BuildContext context) async {
     print('the email :' + email + ' the password:' + password);
     if(email.isEmpty || password.isEmpty){
@@ -27,6 +32,9 @@ class _LoginState extends State<Login> {
       });
       return;
     }
+    setState(() {
+      _loading = true;
+    });
     try{
       setState(() {
         error = '';
@@ -49,9 +57,15 @@ class _LoginState extends State<Login> {
     catch(e){
       print('an error occures');
       setState(() {
-        error = 'Verify your internet connection';
+        error = e.toString();
+
+        // error = 'Verify your internet connection';
       });
       print(e.toString());
+    }finally{
+      setState(() {
+        _loading = false;
+      });
     }
 
   }
@@ -90,6 +104,7 @@ class _LoginState extends State<Login> {
               ),
               TextField(
                 // style: TextStyle(fontSize: 12),
+
                 obscureText: true,
                 decoration: InputDecoration(
                     hintText: 'Enter your password', icon: Icon(Icons.lock)),
@@ -104,10 +119,11 @@ class _LoginState extends State<Login> {
               ),
               MaterialButton(
                 onPressed: () {
-                  login(context);
+                  _loading ? null:login(context);
                 },
+
                 color: Colors.blue,
-                child: Text('Login'),
+                child: _loading ? Container(height: 20 ,width:20, child: CircularProgressIndicator( strokeWidth: 3 ,color: Colors.white,)):Text('Login'),
               ),
               SizedBox(
                 height: 5,

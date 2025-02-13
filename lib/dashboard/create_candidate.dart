@@ -16,6 +16,7 @@ class _CreateCandidateState extends State<CreateCandidate> {
   String image = '';
   String msg = '';
   String error ='';
+  bool _loading = false;
 
   void addCandidate() async{
     if(name.isEmpty || description.isEmpty){
@@ -27,11 +28,13 @@ class _CreateCandidateState extends State<CreateCandidate> {
     try{
       setState(() {
         error = '';
+        _loading = true;
       });
         final fireStore =  FirebaseFirestore.instance;
         final response = await fireStore.collection('candidates').add({
           'name':name,
-          'description':description
+          'description':description,
+          'votes':[]
         });
         print(response);
         setState(() {
@@ -41,6 +44,11 @@ class _CreateCandidateState extends State<CreateCandidate> {
     }catch(e){
       setState(() {
         error = 'Verify your internet connection';
+      });
+    }
+    finally{
+      setState(() {
+        _loading = false;
       });
     }
   }
@@ -86,9 +94,9 @@ class _CreateCandidateState extends State<CreateCandidate> {
             Text(error.isEmpty ? msg : error ,style: TextStyle(color: error.isEmpty ? Colors.green:Colors.red),),
             MaterialButton(
               onPressed: () {
-                addCandidate();
+                _loading ? null:addCandidate();
               },
-              child: Padding( padding:EdgeInsets.all(10),child: Text('Add Candidate')),
+              child: Padding( padding:EdgeInsets.all(10),child: _loading ? CircularProgressIndicator():Text('Add Candidate')),
               color: Colors.lime[200],
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             )

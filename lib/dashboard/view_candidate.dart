@@ -11,18 +11,44 @@ class ViewCandidate extends StatefulWidget {
 }
 
 class _ViewCandidateState extends State<ViewCandidate> {
+  Map<String ,dynamic> session = {};
   String error = '';
   List potentials = [];
+
+  bool _loading = false;
+  bool _deleteLoading = false;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    void getCandidates() async{
+
+    Future<void> getCurrentSession() async{
+
       try{
+        final fireStore = FirebaseFirestore.instance;
+        final sessions = await fireStore.collection('sessions').get();
         setState(() {
-          error ='';
+          session = sessions.docs[0].data();
+          session['id'] = sessions.docs[0].id;
         });
+      }
+      catch(e){
+        print(e);
+      }
+
+    }
+
+    void getCandidates() async{
+      setState(() {
+        error ='';
+        _loading = true;
+      });
+
+      await getCurrentSession();
+
+      try{
+
         final fireStore = FirebaseFirestore.instance;
         final res = await fireStore.collection('candidates').get();
         // print(res.docs[0]);
@@ -37,15 +63,28 @@ class _ViewCandidateState extends State<ViewCandidate> {
         // print(e.toString());
 
       }
+      finally{
+        setState(() {
+          _loading = false;
+        });
+      }
     }
     getCandidates();
 
   }
 
   void deleteCandidate(String id) async{
+    setState(() {
+      _deleteLoading = true;
+      error = '';
+    });
     try{
       final fireStore = FirebaseFirestore.instance;
       await fireStore.collection('candidates').doc(id).delete();
+      final newItems = await fireStore.collection('candidates').get();
+      setState(() {
+        potentials = newItems.docs;
+      });
 
     }
     catch(e){
@@ -53,6 +92,11 @@ class _ViewCandidateState extends State<ViewCandidate> {
         error = 'Verify your internet connection';
       });
       print(e.toString());
+    }
+    finally{
+      setState(() {
+        _deleteLoading = false;
+      });
     }
   }
 
@@ -84,12 +128,15 @@ class _ViewCandidateState extends State<ViewCandidate> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             SizedBox(height: 20,),
-            Text('Candidates (${potentials.length})' ,style: TextStyle(fontWeight: FontWeight.bold ,fontSize: 20),),
+            _loading ? Center(child: CircularProgressIndicator()):Text('Candidates (${potentials.length})' ,style: TextStyle(fontWeight: FontWeight.bold ,fontSize: 20),),
+            SizedBox(height: 15,),
+            _deleteLoading ? Center(child: Row(children: [Text('deleting the candidate..') ,Container(height:10 ,width:10,child: CircularProgressIndicator())],),):Text(''),
+            Text(error ,style: TextStyle(color:Colors.red),),
             SizedBox(height: 15,),
             ...(potentials.map((candidate){
               print(candidate.data());
               return (
-              Candidate(name: candidate.data()['name'],description: candidate.data()['description'],id: candidate.id, removeCandidate: deleteCandidate,)
+              Candidate(name: candidate.data()['name'],description: candidate.data()['description'],id: candidate.id, removeCandidate: deleteCandidate,status: session['status'],)
               );
             } ).toList())
           ],
@@ -100,10 +147,11 @@ class _ViewCandidateState extends State<ViewCandidate> {
 }
 
 class Candidate extends StatelessWidget {
-  Candidate({this.name='' ,this.description='' ,this.id='', required this.removeCandidate });
+  Candidate({this.name='' ,this.description='' ,this.id='', required this.removeCandidate , this.status=''});
   String name;
   String description;
   String id='';
+  String status='';
   Function removeCandidate;
 
   @override
@@ -123,7 +171,7 @@ class Candidate extends StatelessWidget {
               ],
             ),
 
-            TextButton(onPressed: (){removeCandidate(id);}, child: Icon(Icons.delete ,semanticLabel: 'delete',))
+            status != 'active' ? Text(''):TextButton(onPressed: (){removeCandidate(id);}, child: Icon(Icons.delete ,semanticLabel: 'delete',))
           ],
         ),
       ),
