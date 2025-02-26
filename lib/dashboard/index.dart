@@ -12,86 +12,80 @@ class Index extends StatefulWidget {
 }
 
 class _IndexState extends State<Index> {
-
-  Map<String ,dynamic> session ={};
+  Map<String, dynamic> session = {};
   /*
-  * session:{status:[active ,ended ,published]}
+  * session:{status:[active, ended, published]}
   * */
   bool _loading = false;
   bool _endVoteLoading = false;
   bool _publishVoteLoading = false;
   bool _sessionloading = false;
 
-  String msg ='';
-  String error ='';
+  String msg = '';
+  String error = '';
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    void getCurrentSession() async{
-      setState(() {
-        _loading = true;
-        error = '';
-        msg = '';
-      });
-      try{
-        final fireStore = FirebaseFirestore.instance;
-        final sessions = await fireStore.collection('sessions').get();
-        setState(() {
-          session = sessions.docs[0].data();
-          session['id'] = sessions.docs[0].id;
-        });
-      }
-      catch(e){
-        setState(() {
-          error = 'An error occured';
-        });
-        print(e);
-      }
-      finally{
-        setState(() {
-          _loading = false;
-        });
-      }
-    }
     getCurrentSession();
   }
 
+  void getCurrentSession() async {
+    setState(() {
+      _loading = true;
+      error = '';
+      msg = '';
+    });
+    try {
+      final fireStore = FirebaseFirestore.instance;
+      final sessions = await fireStore.collection('sessions').get();
+      setState(() {
+        session = sessions.docs[0].data();
+        session['id'] = sessions.docs[0].id;
+      });
+    } catch (e) {
+      setState(() {
+        error = 'An error occurred while fetching session data';
+      });
+      print(e);
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
   // Function to end a vote by changing the session status
-  void endVotes() async{
-
-
-    if(session['status'] == 'ended' || session['status'] == 'published'){
+  void endVotes() async {
+    if (session['status'] == 'ended' || session['status'] == 'published') {
       setState(() {
         msg = '';
-        error='Votes already ended';
+        error = 'Votes have already been ended';
       });
       return;
     }
+    
     setState(() {
       _endVoteLoading = true;
-      error='';
-      msg='';
+      error = '';
+      msg = '';
     });
 
-    try{
-      final fireStore =  FirebaseFirestore.instance;
-      final response = await fireStore.collection('sessions').doc(session['id']).update({
-        'status':'ended'
+    try {
+      final fireStore = FirebaseFirestore.instance;
+      await fireStore.collection('sessions').doc(session['id']).update({
+        'status': 'ended'
       });
       setState(() {
         msg = 'Votes ended successfully';
         session['status'] = 'ended';
       });
-    }
-    catch(e){
+    } catch (e) {
       setState(() {
-        error = 'An error occured';
+        error = 'An error occurred while ending votes';
       });
       print(e);
-    }
-    finally{
+    } finally {
       setState(() {
         _endVoteLoading = false;
       });
@@ -99,57 +93,58 @@ class _IndexState extends State<Index> {
   }
 
   // Function to publish the vote results
-  void publishResults() async{
-    if(session['status'] == 'published' ){
+  void publishResults() async {
+    if (session['status'] == 'published') {
       setState(() {
         msg = '';
-        error='Votes already published';
+        error = 'Results have already been published';
       });
       return;
     }
+    
     setState(() {
       _publishVoteLoading = true;
-      error ='';
-      msg ='';
+      error = '';
+      msg = '';
     });
-    try{
+    
+    try {
       final fireStore = FirebaseFirestore.instance;
-      final response = await fireStore.collection('sessions').doc(session['id']).update({
-        'status':'published'
+      await fireStore.collection('sessions').doc(session['id']).update({
+        'status': 'published'
       });
       setState(() {
-        msg = 'Votes results published successfully! \n note: this operation is not reversible';
+        msg = 'Vote results published successfully!\nNote: This operation cannot be reversed';
         session['status'] = 'published';
       });
-    }
-    catch(e){
+    } catch (e) {
       setState(() {
-        error ='an error occured';
+        error = 'An error occurred while publishing results';
       });
       print(e);
-    }finally{
+    } finally {
       setState(() {
         _publishVoteLoading = false;
-
       });
     }
   }
 
-
   // Function to start a new session
-  void startSession() async{
+  void startSession() async {
     setState(() {
       _sessionloading = true;
       error = '';
-      msg ='';
+      msg = '';
     });
-    try{
+    
+    try {
       final fireStore = FirebaseFirestore.instance;
-      final sessions = await fireStore.collection('sessions').doc(session['id']).update({
-        'status':'active'
+      await fireStore.collection('sessions').doc(session['id']).update({
+        'status': 'active'
       });
+      
       final candidates = await fireStore.collection('candidates').get();
-       candidates.docs.clear();
+      candidates.docs.clear();
 
       CollectionReference users = FirebaseFirestore.instance.collection('users');
 
@@ -166,21 +161,19 @@ class _IndexState extends State<Index> {
 
         // Step 3: Commit the batch update
         await batch.commit();
-
         print("Voting status reset successfully for all users.");
       }
 
       setState(() {
         session['status'] = 'active';
-        msg = 'New Session created correctly \n all the previous candidates will be automatically deleted \n this operation is not reverisble';
+        msg = 'New session created successfully\nAll previous candidates have been deleted\nThis operation cannot be reversed';
       });
-    }
-    catch(e){
+    } catch (e) {
       setState(() {
-        error = 'an error occured';
+        error = 'An error occurred while starting a new session';
       });
       print(e);
-    }finally{
+    } finally {
       setState(() {
         _sessionloading = false;
       });
@@ -191,101 +184,276 @@ class _IndexState extends State<Index> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Dashboard',
-          style: TextStyle(fontWeight: FontWeight.w600),
+        title: const Text(
+          'Administration Dashboard',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
         ),
-        backgroundColor: Colors.lightGreen[300],
+        backgroundColor: Colors.green[600],
+        elevation: 4,
       ),
-      body: Padding(
-        padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
-        child: _loading ? Center(child: CircularProgressIndicator()):Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            SizedBox(
-              height: 10,
+      body: _loading
+          ? const Center(
+              child: CircularProgressIndicator(
+                color: Colors.green,
+              ),
+            )
+          : Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Colors.green[50]!, Colors.white],
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 20),
+                    Container(
+                      padding: const EdgeInsets.all(15),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.2),
+                            spreadRadius: 1,
+                            blurRadius: 5,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.person,
+                                color: Colors.green,
+                                size: 28,
+                              ),
+                              const SizedBox(width: 10),
+                              Text(
+                                'Welcome, Administrator',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 22,
+                                  color: Colors.green[800],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 8,
+                              horizontal: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: getStatusColor(session['status']),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              'Current Status: ${getStatusText(session['status'])}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    if (error.isNotEmpty)
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.red[50],
+                          borderRadius: BorderRadius.circular(5),
+                          border: Border.all(color: Colors.red[300]!),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.error_outline, color: Colors.red),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                error,
+                                style: const TextStyle(color: Colors.red),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    if (msg.isNotEmpty)
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.green[50],
+                          borderRadius: BorderRadius.circular(5),
+                          border: Border.all(color: Colors.green[300]!),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.check_circle_outline, color: Colors.green),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                msg,
+                                style: const TextStyle(color: Colors.green),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    const SizedBox(height: 30),
+                    Expanded(
+                      child: GridView.count(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 15,
+                        mainAxisSpacing: 15,
+                        childAspectRatio: 1.5,
+                        children: [
+                          _buildActionCard(
+                            title: 'View Candidates',
+                            icon: Icons.people,
+                            color: Colors.blue,
+                            onTap: () {
+                              Navigator.pushNamed(context, ViewCandidate.id);
+                            },
+                          ),
+                          _buildActionCard(
+                            title: 'Add Candidate',
+                            icon: Icons.person_add,
+                            color: Colors.amber,
+                            onTap: () {
+                              if (session['status'] == 'ended' || session['status'] == 'published') {
+                                setState(() {
+                                  error = 'Votes have been ended\nYou need to start a new session';
+                                  msg = '';
+                                });
+                              } else {
+                                Navigator.pushNamed(context, CreateCandidate.id);
+                              }
+                            },
+                          ),
+                          _buildActionCard(
+                            title: 'End Votes & Publish Results',
+                            icon: Icons.how_to_vote,
+                            color: Colors.purple,
+                            isLoading: _publishVoteLoading,
+                            onTap: () {
+                              _publishVoteLoading ? null : publishResults();
+                            },
+                          ),
+                          if (session['status'] != 'active')
+                            _buildActionCard(
+                              title: 'Start New Session',
+                              icon: Icons.restart_alt,
+                              color: Colors.green,
+                              isLoading: _sessionloading,
+                              onTap: () {
+                                _sessionloading ? null : startSession();
+                              },
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-            Padding(
-                padding: EdgeInsets.fromLTRB(10, 0, 0, 0),
-                child: Text(
-                  'Welcome administrator',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-                )),
-            SizedBox(
-              height: 15,
-            ),
-            Center(child: Text(error ,style: TextStyle(color:Colors.red),)),
-            Center(child: Text(msg ,style: TextStyle(color:Colors.green),)),
+    );
+  }
 
-            SizedBox(height: 15,),
-            MaterialButton(
-                color: Colors.lime[50],
-                hoverColor: Colors.lime[200],
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-                onPressed: () {
-                  Navigator.pushNamed(context, ViewCandidate.id);
-                },
-                child: Padding(
-                    padding: EdgeInsets.all(10),
-                    child: Text(
-                      'View Candidates',
-                    ))),
-            SizedBox(
-              height: 20,
+  Widget _buildActionCard({
+    required String title,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+    bool isLoading = false,
+  }) {
+    return InkWell(
+      onTap: isLoading ? null : onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.2),
+              spreadRadius: 1,
+              blurRadius: 5,
+              offset: const Offset(0, 3),
             ),
-            MaterialButton(
-                color: Colors.lime[50],
-                hoverColor: Colors.lime[200],
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-                onPressed: () {
-                  if(session['status'] == 'ended' || session['status'] == 'published'){
-                    setState(() {
-                      error ='Votes have been ended \n You need to start a new session';
-                      msg = '';
-                    });
-                  }else{
-                    Navigator.pushNamed(context, CreateCandidate.id);
-                  }
-                },
-                child: Padding(
-                    padding: EdgeInsets.all(10),
-                    child: Text('Add Candidates'))),
-            SizedBox(
-              height: 20,
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            isLoading
+                ? SizedBox(
+                    height: 30,
+                    width: 30,
+                    child: CircularProgressIndicator(
+                      color: color,
+                      strokeWidth: 3,
+                    ),
+                  )
+                : Icon(
+                    icon,
+                    color: color,
+                    size: 40,
+                  ),
+            const SizedBox(height: 15),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Text(
+                title,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                  color: Colors.grey[800],
+                ),
+              ),
             ),
-            // MaterialButton(
-            //     color: Colors.lime[50],
-            //     hoverColor: Colors.lime[200],
-            //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-            //     onPressed: () { _endVoteLoading ? null:endVotes(); },
-            //     child: Padding(
-            //         padding: EdgeInsets.all(10), child:_endVoteLoading ?CircularProgressIndicator(): Text('End votes'))),
-            // SizedBox(
-            //   height: 20,
-            // ),
-            MaterialButton(
-                color: Colors.lime[50],
-                hoverColor: Colors.lime[200],
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-                onPressed: () { _publishVoteLoading ? null:publishResults(); },
-                child: Padding(
-                    padding: EdgeInsets.all(10),
-                    child: _publishVoteLoading ? CircularProgressIndicator():Text('End votes and Publish results'))),
-            SizedBox(
-              height: 20,
-            ),
-             session['status'] == 'active' ? Text(''):
-            MaterialButton(
-                color: Colors.lime[100],
-                hoverColor: Colors.lime[200],
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-                onPressed: () { _sessionloading ? null:startSession(); },
-                child: Padding(
-                    padding: EdgeInsets.all(10),
-                    child: _sessionloading ? CircularProgressIndicator():Text('Start a new session')))
           ],
         ),
       ),
     );
+  }
+
+  Color getStatusColor(String? status) {
+    switch (status) {
+      case 'active':
+        return Colors.green;
+      case 'ended':
+        return Colors.orange;
+      case 'published':
+        return Colors.blue;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  String getStatusText(String? status) {
+    switch (status) {
+      case 'active':
+        return 'Voting Active';
+      case 'ended':
+        return 'Voting Ended';
+      case 'published':
+        return 'Results Published';
+      default:
+        return 'Unknown';
+    }
   }
 }
