@@ -13,19 +13,23 @@ The **Flutter Voting App** is a mobile application designed to facilitate online
 Here are some visuals of the app:  
 
 ### Welcome Page  
-![Welcome Page](./screenshots/welcome_page.png)  
+![Welcome Page](./screenshots/welcome_Page.png)  
 
 ### Auht Page  
 ![Register](./screenshots/register.png) 
-![Register](./screenshots/login.png) 
+![Login](./screenshots/login.png) 
 
 
 ### Admin Page   
-![Admin_page](./screenshots/admin_dashboard0.png)
-![Admin_page](./screenshots/admin_dashboard.png)
+![Admin page](./screenshots/admin_dashboard0.png)
+![Admin page](./screenshots/admin_dashboard.png)
 
 ### Voting Screen  
 ![Voting Screen](./screenshots/vote_candidate.png) 
+
+### Candidates Section in Admin Dashboard
+![Add Candidate](./screenshots/addd_candidate.png) 
+![View Candidate](./screenshots/candidate_list.png) 
 
 
 ## Admin Login Credentials  
