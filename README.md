@@ -13,7 +13,7 @@ The **Flutter Voting App** is a mobile application designed to facilitate online
 Here are some visuals of the app:  
 
 ### Welcome Page  
-![Welcome Page](screenshots/welcome_page.png)  
+![Welcome Page](./screenshots/welcome_page.png)  
 
 ### Voting Screen  
 ![Voting Screen](https://github.com/Domguia-Simo/flutter-voting-app/blob/main/screenshots/voting_screen.png)  
