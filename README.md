@@ -12,8 +12,8 @@ The **Flutter Voting App** is a mobile application designed to facilitate online
 ## Screenshots  
 Here are some visuals of the app:  
 
-### Home Screen  
-![Home Screen](https://github.com/Domguia-Simo/flutter-voting-app/blob/main/screenshots/home_screen.png)  
+### Welcome Page  
+![Welcome Page](screenshots/welcome_page.png)  
 
 ### Voting Screen  
 ![Voting Screen](https://github.com/Domguia-Simo/flutter-voting-app/blob/main/screenshots/voting_screen.png)  
