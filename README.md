@@ -15,13 +15,18 @@ Here are some visuals of the app:
 ### Welcome Page  
 ![Welcome Page](./screenshots/welcome_page.png)  
 
+### Auht Page  
+![Register](./screenshots/register.png) 
+![Register](./screenshots/login.png) 
+
+
+### Admin Page   
+![Admin_page](./screenshots/admin_dashboard0.png)
+![Admin_page](./screenshots/admin_dashboard.png)
+
 ### Voting Screen  
-![Voting Screen](https://github.com/Domguia-Simo/flutter-voting-app/blob/main/screenshots/voting_screen.png)  
+![Voting Screen](./screenshots/vote_candidate.png) 
 
-### Results Screen  
-![Results Screen](https://github.com/Domguia-Simo/flutter-voting-app/blob/main/screenshots/results_screen.png)  
-
-(Replace `home_screen.png`, `voting_screen.png`, and `results_screen.png` with the actual filenames in your `screenshots` folder.)  
 
 ## Admin Login Credentials  
 To log in as an admin, use the following credentials:  
