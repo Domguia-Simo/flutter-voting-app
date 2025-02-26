@@ -312,6 +312,7 @@ class _ViewCandidateState extends State<ViewCandidate> {
     final candidateData = candidate.data();
     final id = candidate.id;
     final isDeleting = _deleteLoading && _deletingCandidateId == id;
+    final imageUrl = candidateData['imageUrl'];
     
     return Container(
       margin: EdgeInsets.only(bottom: 16),
@@ -331,13 +332,16 @@ class _ViewCandidateState extends State<ViewCandidate> {
         contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         leading: CircleAvatar(
           backgroundColor: Colors.green[100],
-          child: Text(
-            candidateData['name']?[0] ?? '?',
-            style: TextStyle(
-              color: Colors.green[700],
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          backgroundImage: imageUrl != null ? NetworkImage(imageUrl) : null,
+          child: imageUrl == null
+              ? Text(
+                  candidateData['name']?[0] ?? '?',
+                  style: TextStyle(
+                    color: Colors.green[700],
+                    fontWeight: FontWeight.bold,
+                  ),
+                )
+              : null,
         ),
         title: Text(
           candidateData['name'] ?? 'Unnamed Candidate',

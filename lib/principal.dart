@@ -174,6 +174,9 @@ class _PrincipalState extends State<Principal> {
     int i = 0;
     var result = candidates.map((candidate) {
       i++;
+      final candidateData = candidate.data();
+      final String? imageUrl = candidateData['imageUrl']; // Get image URL if available
+      
       return Card(
         elevation: 3,
         margin: EdgeInsets.only(bottom: 16),
@@ -191,18 +194,21 @@ class _PrincipalState extends State<Principal> {
                   children: [
                     CircleAvatar(
                       backgroundColor: primaryColor,
-                      child: Text(
+                      radius: 25, // Increased size for better image display
+                      // Display image if available, otherwise show number
+                      backgroundImage: imageUrl != null ? NetworkImage(imageUrl) : null,
+                      child: imageUrl == null ? Text(
                         i.toString(),
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
                         ),
-                      ),
+                      ) : null, // Remove child when showing image
                     ),
                     SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        candidate.data()['name'],
+                        candidateData['name'],
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 20,
@@ -214,7 +220,7 @@ class _PrincipalState extends State<Principal> {
                 ),
                 SizedBox(height: 12),
                 Text(
-                  candidate.data()['description'],
+                  candidateData['description'],
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.black87,
@@ -229,7 +235,7 @@ class _PrincipalState extends State<Principal> {
                         ? null
                         : () {
                             voteCandidate(context, candidate.id,
-                                candidate.data()['votes']);
+                                candidateData['votes']);
                           },
                     icon: Icon(Icons.how_to_vote),
                     label: Text('Vote'),
@@ -268,6 +274,7 @@ class _PrincipalState extends State<Principal> {
       results.add({
         'name': candidates[i].data()['name'],
         'votes': votes,
+        'imageUrl': candidates[i].data()['imageUrl'], // Add imageUrl to results
       });
 
       if (votes >= max) {
@@ -293,6 +300,13 @@ class _PrincipalState extends State<Principal> {
               padding: EdgeInsets.all(20),
               child: Column(
                 children: [
+                  // Check if winner has an image
+                  winner['imageUrl'] != null ?
+                  CircleAvatar(
+                    radius: 40,
+                    backgroundImage: NetworkImage(winner['imageUrl']),
+                    backgroundColor: Colors.white,
+                  ) :
                   Icon(
                     Icons.emoji_events,
                     size: 50,
@@ -351,12 +365,38 @@ class _PrincipalState extends State<Principal> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        candidate['name'],
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
+                      Row(
+                        children: [
+                          // Add candidate image to results list
+                          CircleAvatar(
+                            radius: 20,
+                            backgroundColor: primaryColor,
+                            backgroundImage: candidate['imageUrl'] != null 
+                                ? NetworkImage(candidate['imageUrl']) 
+                                : null,
+                            child: candidate['imageUrl'] == null 
+                                ? Text(
+                                    results.indexOf(candidate) + 1 > 9 
+                                        ? '9+' 
+                                        : (results.indexOf(candidate) + 1).toString(),
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ) 
+                                : null,
+                          ),
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              candidate['name'],
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                       SizedBox(height: 8),
                       Row(

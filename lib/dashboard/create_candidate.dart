@@ -1,5 +1,9 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'dart:io';
 
 class CreateCandidate extends StatefulWidget {
   static String id = 'create_candidate';
@@ -15,6 +19,8 @@ class _CreateCandidateState extends State<CreateCandidate> {
   String msg = '';
   String error = '';
   bool _loading = false;
+  File? _imageFile;
+  String? _imageUrl;
 
   // Theme colors
   final Color primaryColor = const Color(0xFF4CAF50);
@@ -28,45 +34,73 @@ class _CreateCandidateState extends State<CreateCandidate> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
 
+  Future<void> _pickImage(ImageSource source) async {
+    final pickedFile = await ImagePicker().pickImage(source: source);
+
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = File(pickedFile.path);
+        if (kIsWeb) {
+          _imageUrl = pickedFile.path; // For web, use the path directly
+        }
+      });
+    }
+  }
+
   void addCandidate() async {
     setState(() {
       name = _nameController.text.trim();
       description = _descriptionController.text.trim();
     });
 
-    if (name.isEmpty || description.isEmpty) {
+    if (name.isEmpty || description.isEmpty || (_imageFile == null && !kIsWeb)) {
       setState(() {
-        error = 'Please fill all required fields';
+        error = 'Please fill all required fields and select an image';
       });
-      _showSnackBar('Please fill all required fields', isError: true);
+      _showSnackBar('Please fill all required fields and select an image', isError: true);
       return;
     }
-    
+
     try {
       setState(() {
         error = '';
         msg = '';
         _loading = true;
       });
-      
+
+      String? imageUrl;
+      if (!kIsWeb) {
+        // Upload image to Firebase Storage for mobile
+        final storageRef = FirebaseStorage.instance.ref().child('candidate_images/${DateTime.now().millisecondsSinceEpoch}.jpg');
+        await storageRef.putFile(_imageFile!);
+        imageUrl = await storageRef.getDownloadURL();
+      } else {
+        // For web, use the temporary URL
+        imageUrl = _imageUrl;
+      }
+
+      // Add candidate data to Firestore
       final fireStore = FirebaseFirestore.instance;
       await fireStore.collection('candidates').add({
         'name': name,
         'description': description,
+        'imageUrl': imageUrl,
         'votes': []
       });
-      
+
       setState(() {
         msg = 'Candidate added successfully';
         // Clear form fields after successful submission
         _nameController.clear();
         _descriptionController.clear();
+        _imageFile = null;
+        _imageUrl = null;
         name = '';
         description = '';
       });
-      
+
       _showSnackBar('Candidate added successfully');
-      
+
     } catch (e) {
       setState(() {
         error = 'Failed to add candidate. Please check your connection.';
@@ -164,6 +198,39 @@ class _CreateCandidateState extends State<CreateCandidate> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Image field
+                        Text(
+                          'Candidate Image',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: textColor,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        _imageFile == null && _imageUrl == null
+                            ? Text('No image selected.')
+                            : kIsWeb
+                                ? Image.network(_imageUrl!, height: 150, width: 150, fit: BoxFit.cover)
+                                : Image.file(_imageFile!, height: 150, width: 150, fit: BoxFit.cover),
+                        SizedBox(height: 16),
+                        Row(
+                          children: [
+                            ElevatedButton.icon(
+                              onPressed: () => _pickImage(ImageSource.gallery),
+                              icon: Icon(Icons.photo_library),
+                              label: Text('Gallery'),
+                            ),
+                            SizedBox(width: 16),
+                            ElevatedButton.icon(
+                              onPressed: () => _pickImage(ImageSource.camera),
+                              icon: Icon(Icons.camera_alt),
+                              label: Text('Camera'),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 24),
+                        
                         // Name field
                         Text(
                           'Candidate Name',
