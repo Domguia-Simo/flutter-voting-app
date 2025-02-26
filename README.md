@@ -46,7 +46,9 @@ If you’d like to contribute:
 
 ## Contact
 For inquiries, reach out to the repository owner at **Domguia-Simo** or **G-Bryan237** on GitHub.
-Email : e.bryandze@gmail.com
+Email : 
+domguiasimoulrich@gmail.com
+e.bryandze@gmail.com
 
 ---
 Feel free to update this README based on additional features or modifications! 🚀
