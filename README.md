@@ -15,7 +15,7 @@ Here are some visuals of the app:
 ### Welcome Page  
 ![Welcome Page](./screenshots/welcome_Page.png)  
 
-### Auht Page  
+### Auth Page  
 ![Register](./screenshots/register.png) 
 ![Login](./screenshots/login.png) 
 
